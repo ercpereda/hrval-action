@@ -15,8 +15,9 @@ AWS_S3_PLUGIN={$8-""}
 if [[ ${HELM_VER} == "v2" ]]; then
     helm init --client-only
     
-    helm repo add stable https://kubernetes-charts.storage.googleapis.com
-    helm repo add incubator https://kubernetes-charts-incubator.storage.googleapis.com
+    helm repo add elastic https://helm.elastic.co
+else
+    helmv3 repo add elastic https://helm.elastic.co
 fi
 
 if [[ ${AWS_S3_REPO} == true ]]; then
