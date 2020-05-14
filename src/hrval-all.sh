@@ -3,13 +3,14 @@
 set -o errexit
 
 DIR=${1}
-IGNORE_VALUES=${2-false}
-KUBE_VER=${3-master}
-HELM_VER=${4-v2}
+FILTER=${2}
+IGNORE_VALUES=${3-false}
+KUBE_VER=${4-master}
+HELM_VER=${5-v2}
 HRVAL="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )/hrval.sh"
-AWS_S3_REPO=${5-false}
-AWS_S3_REPO_NAME=${6-""}
-AWS_S3_PLUGIN={$7-""}
+AWS_S3_REPO=${6-false}
+AWS_S3_REPO_NAME=${7-""}
+AWS_S3_PLUGIN={$8-""}
 
 if [[ ${HELM_VER} == "v2" ]]; then
     helm init --client-only
@@ -45,7 +46,7 @@ function isHelmRelease {
 # Find yaml files in directory recursively
 DIR_PATH=$(echo ${DIR} | sed "s/^\///;s/\/$//")
 FILES_TESTED=0
-for f in `find ${DIR} -type f -name '*.yaml' -or -name '*.yml'`; do
+for f in `find ${DIR} -type f -name '*.yaml' -or -name '*.yml' | grep "${FILTER}"`; do
   if [[ $(isHelmRelease ${f}) == "true" ]]; then
     ${HRVAL} ${f} ${IGNORE_VALUES} ${KUBE_VER} ${HELM_VER}
     FILES_TESTED=$(( FILES_TESTED+1 ))
