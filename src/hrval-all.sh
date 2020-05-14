@@ -20,7 +20,7 @@ if [[ ${HELM_VER} == "v2" ]]; then
 else
     helmv3 repo add stable https://kubernetes-charts.storage.googleapis.com
     helmv3 repo add incubator https://kubernetes-charts-incubator.storage.googleapis.com
-    helmv3 env
+    echo $(helmv3 env)
 fi
 
 if [[ ${AWS_S3_REPO} == true ]]; then
