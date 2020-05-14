@@ -28,7 +28,7 @@ function download {
   CHART_NAME=$(yq r ${1} spec.chart.name)
   CHART_VERSION=$(yq r ${1} spec.chart.version)
   CHART_DIR=${2}/${CHART_NAME}
-  if [[ ${HELM_VER} == "v3" ]]; then
+  if [[ ${HELM_VER} == "v2" ]]; then
     helm repo add ${CHART_NAME} ${CHART_REPO}
     helm fetch --version ${CHART_VERSION} --untar ${CHART_NAME}/${CHART_NAME} --untardir ${2}
   else
