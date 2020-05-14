@@ -9,7 +9,7 @@ inputs:
     description: 'The HelmRelease YAML file path or dir'
     required: true
   helmReleaseFilter:
-    description: 'Filter the files to be analized using a grep complatible expression"
+    description: 'Filter the files to be analized using a grep complatible expression'
     default: false
   ignoreValues:
     description: 'When set to true HelmRelease values will be ignored'
