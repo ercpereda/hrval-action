@@ -3,7 +3,7 @@
 set -o errexit
 
 DIR=${1}
-FILTER=${2}
+FILTER=${2-".*"}
 IGNORE_VALUES=${3-false}
 KUBE_VER=${4-master}
 HELM_VER=${5-v2}
