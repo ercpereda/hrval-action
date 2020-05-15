@@ -45,3 +45,4 @@ runs:
     - ${{ inputs.awsS3Repo }}
     - ${{ inputs.awsS3RepoName }}
     - ${{ inputs.awsS3RepoPlugin }}
+    - ${{ inputs.helmRepos }}
