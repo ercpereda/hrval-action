@@ -70,6 +70,7 @@ FILES_TESTED=0
 echo "Using filter: ${FILTER}"
 for f in `find ${DIR} -type f -name '*.yaml' -or -name '*.yml' | grep "${FILTER}"`; do
   isHR=$(isHelmRelease ${f})
+  echo "isHelmRelease: ${isHR}"
   if [[ "${isHR}" == "true" ]]; then
     ${HRVAL} ${f} ${IGNORE_VALUES} ${KUBE_VER} ${HELM_VER}
     FILES_TESTED=$(( FILES_TESTED+1 ))
