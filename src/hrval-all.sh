@@ -11,13 +11,27 @@ HRVAL="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )/hrval.s
 AWS_S3_REPO=${6-false}
 AWS_S3_REPO_NAME=${7-""}
 AWS_S3_PLUGIN={$8-""}
+HELM_REPOS=${9-""} # "elastic=https://helm.elastic.co;emberstack=https://emberstack.github.io/helm-charts"
 
 if [[ ${HELM_VER} == "v2" ]]; then
     helm init --client-only
-    
-    helm repo add elastic https://helm.elastic.co
-else
-    helmv3 repo add elastic https://helm.elastic.co
+fi
+
+if [[ ! -z "${HELM_REPOS}" ]]; then
+    repo_lines=($(echo ${HELM_REPOS} | tr ";" "\n"))
+    for line in "${repo_lines[@]}"
+    do
+        tmp=($(echo ${line} | tr "=" "\n"))
+        repo_name="${tmp[0]}"
+        repo_url="${tmp[1]}"
+
+        echo "Adding repo ${repo_name} ${repo_url}"
+        if [[ ${HELM_VER} == "v2" ]]; then
+            helm repo add ${repo_name} ${repo_url}
+        else
+            helmv3 repo add ${repo_name} ${repo_url}
+        fi
+    done
 fi
 
 if [[ ${AWS_S3_REPO} == true ]]; then
