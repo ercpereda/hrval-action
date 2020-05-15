@@ -54,7 +54,10 @@ fi
 
 function isHelmRelease {
   KIND=$(yq r ${1} kind)
-  if [[ ${KIND} == "HelmRelease" ]]; then
+  status=$?
+  if [ ! $status -eq 0 ]; then
+      echo invalid
+  elif [[ ${KIND} == "HelmRelease" ]]; then
       echo true
   else
     echo false
@@ -66,9 +69,13 @@ DIR_PATH=$(echo ${DIR} | sed "s/^\///;s/\/$//")
 FILES_TESTED=0
 echo "Using filter: ${FILTER}"
 for f in `find ${DIR} -type f -name '*.yaml' -or -name '*.yml' | grep "${FILTER}"`; do
-  if [[ $(isHelmRelease ${f}) == "true" ]]; then
+  isHR=$(isHelmRelease ${f})
+  if [[ "${isHR}" == "true" ]]; then
     ${HRVAL} ${f} ${IGNORE_VALUES} ${KUBE_VER} ${HELM_VER}
     FILES_TESTED=$(( FILES_TESTED+1 ))
+  elif [[ "${isHR}" == "invalid" ]]; then
+    echo "The file ${f} is invalid"
+    exit 1
   else
     echo "Ignoring ${f} not a HelmRelease"
   fi
