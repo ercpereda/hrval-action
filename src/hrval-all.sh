@@ -3,16 +3,35 @@
 set -o errexit
 
 DIR=${1}
-IGNORE_VALUES=${2-false}
-KUBE_VER=${3-master}
-HELM_VER=${4-v2}
+FILTER=${2-".*"}
+IGNORE_VALUES=${3-false}
+KUBE_VER=${4-master}
+HELM_VER=${5-v2}
 HRVAL="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )/hrval.sh"
-AWS_S3_REPO=${5-false}
-AWS_S3_REPO_NAME=${6-""}
-AWS_S3_PLUGIN={$7-""}
+AWS_S3_REPO=${6-false}
+AWS_S3_REPO_NAME=${7-""}
+AWS_S3_PLUGIN={$8-""}
+HELM_REPOS=${9-""} # "elastic=https://helm.elastic.co;emberstack=https://emberstack.github.io/helm-charts"
 
 if [[ ${HELM_VER} == "v2" ]]; then
     helm init --client-only
+fi
+
+if [[ ! -z "${HELM_REPOS}" ]]; then
+    repo_lines=($(echo ${HELM_REPOS} | tr ";" "\n"))
+    for line in "${repo_lines[@]}"
+    do
+        tmp=($(echo ${line} | tr "=" "\n"))
+        repo_name="${tmp[0]}"
+        repo_url="${tmp[1]}"
+
+        echo "Adding repo ${repo_name} ${repo_url}"
+        if [[ ${HELM_VER} == "v2" ]]; then
+            helm repo add ${repo_name} ${repo_url}
+        else
+            helmv3 repo add ${repo_name} ${repo_url}
+        fi
+    done
 fi
 
 if [[ ${AWS_S3_REPO} == true ]]; then
@@ -35,7 +54,10 @@ fi
 
 function isHelmRelease {
   KIND=$(yq r ${1} kind)
-  if [[ ${KIND} == "HelmRelease" ]]; then
+  status=$?
+  if [ ! $status -eq 0 ]; then
+      echo invalid
+  elif [[ ${KIND} == "HelmRelease" ]]; then
       echo true
   else
     echo false
@@ -45,10 +67,16 @@ function isHelmRelease {
 # Find yaml files in directory recursively
 DIR_PATH=$(echo ${DIR} | sed "s/^\///;s/\/$//")
 FILES_TESTED=0
-for f in `find ${DIR} -type f -name '*.yaml' -or -name '*.yml'`; do
-  if [[ $(isHelmRelease ${f}) == "true" ]]; then
+echo "Using filter: ${FILTER}"
+for f in `find ${DIR} -type f -name '*.yaml' -or -name '*.yml' | grep "${FILTER}"`; do
+  isHR=$(isHelmRelease ${f})
+  echo "isHelmRelease: ${isHR}"
+  if [[ "${isHR}" == "true" ]]; then
     ${HRVAL} ${f} ${IGNORE_VALUES} ${KUBE_VER} ${HELM_VER}
     FILES_TESTED=$(( FILES_TESTED+1 ))
+  elif [[ "${isHR}" == "invalid" ]]; then
+    echo "The file ${f} is invalid"
+    exit 1
   else
     echo "Ignoring ${f} not a HelmRelease"
   fi
